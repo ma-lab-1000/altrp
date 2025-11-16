@@ -1,17 +1,23 @@
 # Build stage
 FROM node:20-alpine AS builder
 
+# Install build dependencies for native modules (lightningcss, etc.)
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
 
-# Copy workspace package files first
-COPY apps/site/package.json ./apps/site/package.json
-
-# Copy packages directory (shared dependencies)
-COPY packages ./packages
+# Copy settings.ts first (needed for @/settings alias in packages)
+COPY settings.ts ./
 
 # Copy TypeScript configs
 COPY tsconfig.json ./
 COPY apps/site/tsconfig.json ./apps/site/
+
+# Copy packages directory (shared dependencies - needed before building)
+COPY packages ./packages
+
+# Copy workspace package files
+COPY apps/site/package.json ./apps/site/package.json
 
 # Install site dependencies directly (skip root dependencies for monorepo)
 WORKDIR /app/apps/site
