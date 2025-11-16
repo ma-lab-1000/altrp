@@ -1,13 +1,15 @@
 import { eq, } from "drizzle-orm";
 import { createDb, SiteDb } from "./utils";
 import BaseCollection from "../collections/BaseCollection";
+import type { D1Database } from "@cloudflare/workers-types";
+import type postgres from "postgres";
 
 export default class BaseRepository<T> {
     protected db: SiteDb;
-    protected d1DB: D1Database;
-    constructor(db: D1Database, public schema: any) {
+    protected rawDb: D1Database | postgres.Sql;
+    constructor(db: D1Database | postgres.Sql, public schema: any) {
         this.db = createDb(db);
-        this.d1DB = db;
+        this.rawDb = db;
     }
     protected async beforeCreate(data: Partial<T>): Promise<void> {}
     protected async afterCreate(entity: T): Promise<void> {}
@@ -16,7 +18,7 @@ export default class BaseRepository<T> {
     protected async beforeDelete(uuid: string, force: boolean): Promise<void> {}
     protected async afterDelete(uuid: string, force: boolean): Promise<void> {}
     
-    public static getInstance(db: D1Database, schema: any): BaseRepository<any> {
+    public static getInstance(db: D1Database | postgres.Sql, schema: any): BaseRepository<any> {
         return new BaseRepository(db, schema);
     }
     async findByUuid(uuid: string): Promise<T> {
@@ -58,7 +60,7 @@ export default class BaseRepository<T> {
         await this.afterUpdate(entity);
         return entity;
     }
-    async deleteByUuid(uuid: string, force: boolean= false): Promise<D1Result> {
+    async deleteByUuid(uuid: string, force: boolean= false): Promise<any> {
         await this.beforeDelete(uuid, force);
         const result = force ? await this._forceDeleteByUuid(uuid) : await this._softDeleteByUuid(uuid);
         await this.afterDelete(uuid, force);

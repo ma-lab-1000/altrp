@@ -1,5 +1,7 @@
 import { drizzle, type DrizzleD1Database } from "drizzle-orm/d1";
+import { drizzle as drizzlePostgres, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { D1Database } from "@cloudflare/workers-types";
+import type postgres from "postgres";
 import { schema } from "../schema/schema";
 import {
   SQL,
@@ -22,18 +24,37 @@ import {
 } from "drizzle-orm";
 import type { DbFilters, DbOrders } from "../types/shared";
 
-export type SiteDb = DrizzleD1Database<typeof schema>;
+// Support both D1 and PostgreSQL
+export type SiteDb = DrizzleD1Database<typeof schema> | PostgresJsDatabase<typeof schema>;
 
-
-function isSiteDb(db: D1Database | SiteDb): db is SiteDb {
+function isSiteDb(db: D1Database | postgres.Sql | SiteDb): db is SiteDb {
   return typeof db === "object" && db !== null && "select" in db && typeof (db as SiteDb).select === "function";
 }
 
-export function createDb(db: D1Database | SiteDb): SiteDb {
+function isD1Database(db: any): db is D1Database {
+  return db && typeof db.prepare === "function";
+}
+
+function isPostgresSql(db: any): db is postgres.Sql {
+  return db && typeof db.unsafe === "function";
+}
+
+export function createDb(db: D1Database | postgres.Sql | SiteDb): SiteDb {
   if (isSiteDb(db)) {
     return db;
   }
-  return drizzle(db as D1Database, { schema }) as SiteDb;
+  
+  // If it's a D1Database (Cloudflare), use D1 adapter
+  if (isD1Database(db)) {
+    return drizzle(db as D1Database, { schema }) as SiteDb;
+  }
+  
+  // If it's a postgres.Sql, use PostgreSQL adapter
+  if (isPostgresSql(db)) {
+    return drizzlePostgres(db as postgres.Sql, { schema }) as SiteDb;
+  }
+  
+  throw new Error("Unsupported database type");
 }
 
 export function parseJson<T>(value: string | null | undefined, fallback: T): T {
@@ -217,3 +238,4 @@ export function buildDbOrders(schema: Record<string, any>, orders?: DbOrders){
   .filter((expr): expr is ReturnType<typeof asc> => Boolean(expr));
   return (orderExpressions.length ? orderExpressions : [desc(schema.id)])
 }
+
