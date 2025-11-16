@@ -3,25 +3,19 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy root package files
-COPY package.json package-lock.json* bun.lock* ./
-
-# Copy workspace package files
+# Copy workspace package files first
 COPY apps/site/package.json ./apps/site/package.json
 
-# Copy packages directory (shared dependencies) - only package.json files first
+# Copy packages directory (shared dependencies)
 COPY packages ./packages
 
 # Copy TypeScript configs
 COPY tsconfig.json ./
 COPY apps/site/tsconfig.json ./apps/site/
 
-# Install root dependencies
-RUN npm ci --legacy-peer-deps || (npm install --legacy-peer-deps && npm cache clean --force)
-
-# Install site dependencies
+# Install site dependencies directly (skip root dependencies for monorepo)
 WORKDIR /app/apps/site
-RUN npm install --legacy-peer-deps || npm ci --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 WORKDIR /app
@@ -54,7 +48,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/site/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/migrations/site ./migrations
 
 # Install only production dependencies
-RUN npm ci --only=production --legacy-peer-deps && npm cache clean --force
+RUN npm install --only=production --legacy-peer-deps && npm cache clean --force
 
 # Make entrypoint script executable
 RUN chmod +x ./scripts/docker-entrypoint.sh
