@@ -36,6 +36,34 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // Configure webpack to resolve modules from packages and root
+  webpack: (config, { isServer }) => {
+    const path = require('path');
+    const rootDir = path.resolve(__dirname, '../..');
+    const packagesDir = path.resolve(rootDir, 'packages');
+    
+    // Add resolve aliases for path mappings
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+      '@/settings': path.resolve(rootDir, 'settings.ts'),
+      '@/packages': packagesDir,
+      '@/components': path.resolve(packagesDir, 'components'),
+      '@/lib': path.resolve(packagesDir, 'lib'),
+      '@/hooks': path.resolve(packagesDir, 'hooks'),
+      '@/repositories': path.resolve(packagesDir, 'repositories'),
+    };
+    
+    // Add packages and root to module resolution (node_modules should be first)
+    config.resolve.modules = [
+      path.resolve(__dirname, 'node_modules'), // apps/site/node_modules first
+      ...(config.resolve.modules || []),
+      packagesDir,
+      rootDir,
+    ];
+    
+    return config;
+  },
 
 }
 

@@ -6,12 +6,12 @@ RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# Copy settings.ts first (needed for @/settings alias in packages)
-COPY settings.ts ./
-
-# Copy TypeScript configs
+# Copy TypeScript configs first
 COPY tsconfig.json ./
 COPY apps/site/tsconfig.json ./apps/site/
+
+# Copy settings.ts (needed for @/settings alias - must be in root)
+COPY settings.ts ./
 
 # Copy packages directory (shared dependencies - needed before building)
 COPY packages ./packages
@@ -22,6 +22,9 @@ COPY apps/site/package.json ./apps/site/package.json
 # Install site dependencies directly (skip root dependencies for monorepo)
 WORKDIR /app/apps/site
 RUN npm install --legacy-peer-deps
+
+# Verify settings.ts is accessible (for debugging)
+RUN ls -la /app/settings.ts || echo "WARNING: settings.ts not found in /app"
 
 # Copy source code
 WORKDIR /app
