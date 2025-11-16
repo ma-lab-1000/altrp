@@ -26,6 +26,9 @@ RUN npm install --legacy-peer-deps
 # Verify settings.ts is accessible (for debugging)
 RUN ls -la /app/settings.ts || echo "WARNING: settings.ts not found in /app"
 
+# Copy migrations (needed for production stage)
+COPY migrations/site ./migrations/site
+
 # Copy source code
 WORKDIR /app
 COPY apps/site ./apps/site
