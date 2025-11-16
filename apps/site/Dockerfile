@@ -26,9 +26,6 @@ RUN npm install --legacy-peer-deps
 # Verify settings.ts is accessible (for debugging)
 RUN ls -la /app/settings.ts || echo "WARNING: settings.ts not found in /app"
 
-# Copy migrations (needed for production stage)
-COPY migrations/site ./migrations/site
-
 # Copy source code
 WORKDIR /app
 COPY apps/site ./apps/site
@@ -36,6 +33,14 @@ COPY apps/site ./apps/site
 # Build the application
 WORKDIR /app/apps/site
 RUN npm run build
+
+# Copy migrations at the end of builder stage (to ensure they're available for production stage)
+WORKDIR /app
+COPY migrations/site ./migrations/site
+
+# Verify migrations are accessible (for debugging)
+RUN ls -la migrations/site/ || echo "WARNING: migrations not found in /app/migrations/site"
+RUN find . -name "*.sql" -path "*/migrations/*" | head -5 || echo "WARNING: no SQL files found"
 
 # Production stage
 FROM node:20-alpine AS runner
