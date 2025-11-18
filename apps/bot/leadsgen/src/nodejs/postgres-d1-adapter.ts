@@ -137,14 +137,19 @@ class PostgresPreparedStatement {
     // Convert backticks to double quotes (PostgreSQL style)
     converted = converted.replace(/`([^`]+)`/g, '"$1"');
 
-    // Convert json_extract to PostgreSQL JSON operators
-    // json_extract(data_in, '$.telegram_id') -> data_in->>'telegram_id'
+    // Convert json_extract(column, '$.path.to.field') to PostgreSQL JSON operators
     converted = converted.replace(
-      /json_extract\(([^,]+),\s*'([^']+)'\)/gi,
-      (match, column, path) => {
-        // Remove $ prefix from JSON path
+      /json_extract\(\s*([^)]+?)\s*,\s*'([^']+)'\s*\)/gi,
+      (_, columnExpr, path) => {
         const cleanPath = path.replace(/^\$\./, '');
-        return `${column}->>'${cleanPath}'`;
+        const segments = cleanPath.split('.');
+        let expr = `${columnExpr.trim()}::jsonb`;
+        segments.forEach((segment, index) => {
+          const accessor = /^\d+$/.test(segment) ? segment : `'${segment}'`;
+          const operator = index === segments.length - 1 ? '->>' : '->';
+          expr = `(${expr} ${operator} ${accessor})`;
+        });
+        return expr;
       }
     );
 
