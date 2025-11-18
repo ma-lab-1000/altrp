@@ -46,7 +46,8 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy built application
-COPY --from=builder --chown=nextjs:nodejs /app/apps/bot/leadsgen/dist/nodejs ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/apps/bot/leadsgen/dist/nodejs ./dist/nodejs
+RUN ls -R dist/nodejs | head
 COPY --from=builder --chown=nextjs:nodejs /app/apps/bot/leadsgen/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/apps/bot/leadsgen/src/nodejs/server.mjs ./src/nodejs/server.mjs
 
