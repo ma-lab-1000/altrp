@@ -37,8 +37,13 @@ if (process.env.DATABASE_URL) {
   }
   
   // Import PostgreSQL adapter (compiled from TypeScript)
-  // Path: src/nodejs/postgres-d1-adapter.ts -> dist/nodejs/nodejs/postgres-d1-adapter.js
-  const { PostgresD1Adapter } = require('../../dist/nodejs/postgres-d1-adapter.js');
+  let PostgresD1Adapter;
+  try {
+    ({ PostgresD1Adapter } = require('../../dist/nodejs/postgres-d1-adapter.js'));
+  } catch {
+    // Backwards compatibility for older images where files ended up in dist/nodejs/nodejs
+    ({ PostgresD1Adapter } = require('../../dist/nodejs/nodejs/postgres-d1-adapter.js'));
+  }
   dbAdapter = new PostgresD1Adapter(pool);
 } else {
   console.error('❌ DATABASE_URL not set');
@@ -69,7 +74,12 @@ const env = {
 };
 
 // Import bot worker (will be compiled from TypeScript)
-const { TelegramBotWorker } = require('../../dist/nodejs/worker/bot.js');
+let TelegramBotWorker;
+try {
+  ({ TelegramBotWorker } = require('../../dist/nodejs/worker/bot.js'));
+} catch {
+  ({ TelegramBotWorker } = require('../../dist/nodejs/nodejs/worker/bot.js'));
+}
 console.log('✅ Bot worker initialized');
 
 // Health check endpoint
