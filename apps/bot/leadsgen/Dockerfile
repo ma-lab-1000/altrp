@@ -49,7 +49,6 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder --chown=nextjs:nodejs /app/apps/bot/leadsgen/dist/nodejs ./dist
 COPY --from=builder --chown=nextjs:nodejs /app/apps/bot/leadsgen/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/apps/bot/leadsgen/src/nodejs/server.mjs ./src/nodejs/server.mjs
-COPY --from=builder --chown=nextjs:nodejs /app/apps/bot/leadsgen/src/nodejs/*.mjs ./src/nodejs/ 2>/dev/null || true
 
 # Copy migration scripts
 COPY --from=builder --chown=nextjs:nodejs /app/apps/bot/leadsgen/scripts ./scripts
