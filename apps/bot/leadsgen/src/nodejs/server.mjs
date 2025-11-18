@@ -38,7 +38,7 @@ if (process.env.DATABASE_URL) {
   
   // Import PostgreSQL adapter (compiled from TypeScript)
   // Path: src/nodejs/postgres-d1-adapter.ts -> dist/nodejs/nodejs/postgres-d1-adapter.js
-  const { PostgresD1Adapter } = require('../../dist/nodejs/nodejs/postgres-d1-adapter.js');
+  const { PostgresD1Adapter } = require('../../dist/nodejs/postgres-d1-adapter.js');
   dbAdapter = new PostgresD1Adapter(pool);
 } else {
   console.error('❌ DATABASE_URL not set');
