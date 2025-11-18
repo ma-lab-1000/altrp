@@ -111,6 +111,22 @@ export function convertSqliteToPostgres(sql) {
   // Now convert remaining INTEGER keywords (that weren't converted to BOOLEAN or SERIAL)
   converted = converted.replace(/\binteger\b/gi, 'BIGINT');
 
+  // Convert json_extract(column, '$.path') to (column::jsonb ->> 'path')
+  converted = converted.replace(
+    /json_extract\(\s*([^)]+?)\s*,\s*'([^']+)'\s*\)/gi,
+    (_, columnExpr, path) => {
+      const cleanPath = path.replace(/^\$\./, '');
+      const segments = cleanPath.split('.');
+      let expr = `${columnExpr.trim()}::jsonb`;
+      segments.forEach((segment, index) => {
+        const isLast = index === segments.length - 1;
+        const accessor = /^\d+$/.test(segment) ? segment : `'${segment}'`;
+        expr += isLast ? ` ->> ${accessor}` : ` -> ${accessor}`;
+      });
+      return `(${expr})`;
+    }
+  );
+
   // Handle numeric types - keep as NUMERIC in PostgreSQL
   // NUMERIC is compatible
 
