@@ -24,6 +24,7 @@ COPY apps/bot/leadsgen ./apps/bot/leadsgen
 
 # Build TypeScript to JavaScript
 WORKDIR /app/apps/bot/leadsgen
+RUN npm run generate-flows-index
 RUN npm run build:nodejs
 
 # Copy migrations at the end of builder stage
