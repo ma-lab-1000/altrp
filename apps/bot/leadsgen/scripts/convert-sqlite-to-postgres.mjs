@@ -11,24 +11,24 @@ export function convertSqliteToPostgres(sql) {
   // Convert table names from backticks to double quotes (PostgreSQL style)
   converted = converted.replace(/`([^`]+)`/g, '"$1"');
 
-  // Convert INTEGER PRIMARY KEY to SERIAL PRIMARY KEY or BIGSERIAL
-  // But only for auto-increment primary keys
-  converted = converted.replace(
-    /(\w+)\s+integer\s+PRIMARY\s+KEY\s+(?:NOT\s+NULL\s+)?AUTOINCREMENT/gi,
-    '$1 BIGSERIAL PRIMARY KEY'
-  );
+  const pkPatterns = [
+    {
+      regex: /("?[\w]+"?)\s+integer\s+PRIMARY\s+KEY\s+(?:NOT\s+NULL\s+)?AUTOINCREMENT/gi,
+      replacement: '$1 BIGSERIAL PRIMARY KEY',
+    },
+    {
+      regex: /("?[\w]+"?)\s+integer\s+PRIMARY\s+KEY\s+NOT\s+NULL/gi,
+      replacement: '$1 BIGSERIAL PRIMARY KEY',
+    },
+    {
+      regex: /("?[\w]+"?)\s+integer\s+PRIMARY\s+KEY(?!\s+(?:NOT\s+NULL\s+)?AUTOINCREMENT)/gi,
+      replacement: '$1 BIGINT PRIMARY KEY',
+    },
+  ];
 
-  // Convert INTEGER PRIMARY KEY NOT NULL to BIGSERIAL PRIMARY KEY
-  converted = converted.replace(
-    /(\w+)\s+integer\s+PRIMARY\s+KEY\s+NOT\s+NULL/gi,
-    '$1 BIGSERIAL PRIMARY KEY'
-  );
-
-  // Convert INTEGER PRIMARY KEY to BIGINT PRIMARY KEY (for non-auto-increment)
-  converted = converted.replace(
-    /(\w+)\s+integer\s+PRIMARY\s+KEY(?!\s+(?:NOT\s+NULL\s+)?AUTOINCREMENT)/gi,
-    '$1 BIGINT PRIMARY KEY'
-  );
+  pkPatterns.forEach(({ regex, replacement }) => {
+    converted = converted.replace(regex, replacement);
+  });
 
   // NOTE: Do not convert generic INTEGER types yet.
   // Some column-specific transformations (like boolean detection) rely on the original "integer" keyword.
