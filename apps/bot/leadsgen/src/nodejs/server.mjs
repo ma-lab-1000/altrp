@@ -38,11 +38,19 @@ if (process.env.DATABASE_URL) {
   
   // Import PostgreSQL adapter (compiled from TypeScript)
   let PostgresD1Adapter;
-  try {
-    ({ PostgresD1Adapter } = require('../../dist/nodejs/postgres-d1-adapter.js'));
-  } catch {
-    // Backwards compatibility for older images where files ended up in dist/nodejs/nodejs
-    ({ PostgresD1Adapter } = require('../../dist/nodejs/nodejs/postgres-d1-adapter.js'));
+  const adapterCandidates = [
+    '../../dist/nodejs/postgres-d1-adapter.js',
+    '../../dist/nodejs/nodejs/postgres-d1-adapter.js',
+  ];
+  for (const candidate of adapterCandidates) {
+    try {
+      ({ PostgresD1Adapter } = require(candidate));
+      break;
+    } catch (error) {
+      if (candidate === adapterCandidates[adapterCandidates.length - 1]) {
+        throw new Error(`Unable to load Postgres adapter. Tried: ${adapterCandidates.join(', ')}`);
+      }
+    }
   }
   dbAdapter = new PostgresD1Adapter(pool);
 } else {
@@ -75,10 +83,19 @@ const env = {
 
 // Import bot worker (will be compiled from TypeScript)
 let TelegramBotWorker;
-try {
-  ({ TelegramBotWorker } = require('../../dist/nodejs/worker/bot.js'));
-} catch {
-  ({ TelegramBotWorker } = require('../../dist/nodejs/nodejs/worker/bot.js'));
+const workerCandidates = [
+  '../../dist/nodejs/worker/bot.js',
+  '../../dist/nodejs/nodejs/worker/bot.js',
+];
+for (const candidate of workerCandidates) {
+  try {
+    ({ TelegramBotWorker } = require(candidate));
+    break;
+  } catch (error) {
+    if (candidate === workerCandidates[workerCandidates.length - 1]) {
+      throw new Error(`Unable to load TelegramBotWorker. Tried: ${workerCandidates.join(', ')}`);
+    }
+  }
 }
 console.log('✅ Bot worker initialized');
 
