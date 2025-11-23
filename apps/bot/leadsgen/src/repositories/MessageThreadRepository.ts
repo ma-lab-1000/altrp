@@ -1,4 +1,5 @@
 import type { D1Database } from '@cloudflare/workers-types';
+import type { PostgresD1Adapter } from '../nodejs/postgres-d1-adapter';
 import { generateUuidV4 } from '../helpers/generateUuidV4';
 import { generateAid } from '../helpers/generateAid';
 import { D1StorageService } from '../worker/d1-storage-service';
@@ -22,15 +23,16 @@ export interface MessageThreadData {
 }
 
 export interface MessageThreadConfig {
-  db: D1Database;
+  db: D1Database | PostgresD1Adapter;
   d1Storage: D1StorageService;
 }
 
 /**
  * Repository for working with message_threads table
+ * Uses D1Database API (or PostgresD1Adapter which mimics it)
  */
 export class MessageThreadRepository {
-  private db: D1Database;
+  private db: D1Database | PostgresD1Adapter;
   private d1Storage: D1StorageService;
 
   constructor(config: MessageThreadConfig) {
