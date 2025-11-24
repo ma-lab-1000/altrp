@@ -12,27 +12,12 @@ export const commands: BotCommand[] = [
   {
     name: "/start",
     handlerName: "handleStartCommand",
-    description: "Initialize and create topics"
-  },
-  {
-    name: "/enable_ai",
-    handlerName: "handleEnableAICommand",
-    description: "Enable AI assistent"
-  },
-  {
-    name: "/disable_ai",
-    handlerName: "handleDisableAICommand",
-    description: "Disable AI assistent"
-  },
-  {
-    name: "/set_status",
-    handlerName: "handleSetStatusCommand",
-    description: "Set status"
+    description: "Запустить онбординг"
   },
   {
     name: "/menu",
     handlerName: "handleMenuCommand",
-    description: "Open menu"
+    description: "Открыть меню"
   }
 ];
 

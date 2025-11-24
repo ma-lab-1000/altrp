@@ -1,79 +1,79 @@
 export const keyboards = {
-
   start_onboarding_button: {
     inline_keyboard: [[
       {
-        text: "🚀 Start",
+        text: "🚀 Начать",
         callback_data: "start_onboarding_button"
-      },
+      }
     ]]
   },
-  main_menu: {
-    inline_keyboard: [
-      [
-        {
-          text: "Start a conversation",
-          callback_data: "start_conversation"
-        },
-      ],
-      [
-        {
-          text: "Help",
-          callback_data: "help"
-        },
-      ],
-    ]
+  matcher_role_keyboard: {
+    inline_keyboard: [[
+      {
+        text: "Предлагаю",
+        callback_data: "matcher_role_offer"
+      },
+      {
+        text: "Ищу",
+        callback_data: "matcher_role_search"
+      }
+    ]]
   },
-  status_menu: {
-    inline_keyboard: [
-      [
-        {
-          text: "💡 New",
-          callback_data: "new_lead_status"
-        },
-        {
-          text: "🔥 Hot",
-          callback_data: "hot_lead_status"
-        },
-        {
-          text: "💰 Sell",
-          callback_data: "sell_lead_status"
-        },
-      ],
-    ]
+  matcher_offer_type_keyboard: {
+    inline_keyboard: [[
+      {
+        text: "Товар",
+        callback_data: "matcher_select_product"
+      },
+      {
+        text: "Услуга",
+        callback_data: "matcher_select_service"
+      }
+    ]]
   },
-  
+  matcher_search_type_keyboard: {
+    inline_keyboard: [[
+      {
+        text: "Товар",
+        callback_data: "matcher_select_product"
+      },
+      {
+        text: "Услуга",
+        callback_data: "matcher_select_service"
+      }
+    ]]
+  }
 };
 
 export const callbackActions = {
-  
-  "start_onboarding_button": {
+  start_onboarding_button: {
     action: "go_to_step",
     nextStepId: "onboarding_asking_name"
   },
-  "start_conversation": {
-    action: "start_flow",
-    flowName: "start_conversation"
+  matcher_role_offer: {
+    action: "set_variable",
+    variable: "onboarding.role",
+    value: "offer",
+    nextStepId: "onboarding_role_condition"
   },
-  "help": {
-    action: "start_flow",
-    flowName: "help"
+  matcher_role_search: {
+    action: "set_variable",
+    variable: "onboarding.role",
+    value: "search",
+    nextStepId: "onboarding_role_condition"
   },
-  "new_lead_status": {
-    action: "handler",
-    handlerName: "setStatusHandler"
-    // Optional: nextStepId or nextFlow can be added here if handler should transition
-    // Example: nextStepId: "next_step" or nextFlow: "some_flow"
+  matcher_select_product: {
+    action: "set_variable",
+    variable: "onboarding.itemType",
+    value: "product",
+    nextStepId: "onboarding_assign_topic"
   },
-  "hot_lead_status": {
-    action: "handler",
-    handlerName: "setStatusHandler"
-  },
-  "sell_lead_status": {
-    action: "handler",
-    handlerName: "setStatusHandler"
-  },
-
+  matcher_select_service: {
+    action: "set_variable",
+    variable: "onboarding.itemType",
+    value: "service",
+    nextStepId: "onboarding_assign_topic"
+  }
 } as const;
 
 
