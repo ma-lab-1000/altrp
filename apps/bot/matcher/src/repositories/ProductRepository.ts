@@ -29,6 +29,23 @@ export class ProductRepository {
     this.db = config.db;
   }
 
+  private mapRow(row: any): ProductData {
+    return {
+      id: row.id as number,
+      uuid: row.uuid as string,
+      paid: row.paid as string,
+      title: row.title as string | undefined,
+      category: row.category as string | undefined,
+      type: row.type as string | undefined,
+      statusName: row.status_name as string | undefined,
+      isPublic: row.is_public as number | undefined,
+      order: row.order as number | undefined,
+      xaid: row.xaid as string | undefined,
+      dataIn: row.data_in as string | undefined,
+      dataOut: row.data_out as string | undefined
+    };
+  }
+
   async addProduct(product: ProductData): Promise<number> {
     const uuid = product.uuid || generateUuidV4();
     const paid = product.paid || generateAid('p');
@@ -58,6 +75,28 @@ export class ProductRepository {
     ).run();
 
     return result.meta.last_row_id as number;
+  }
+
+  async searchProductsByQuery(query: string, limit = 5): Promise<ProductData[]> {
+    const like = `%${query}%`;
+
+    const result = await this.db.prepare(`
+      SELECT *
+      FROM products
+      WHERE deleted_at IS NULL
+        AND (
+          title LIKE ?
+          OR data_in LIKE ?
+        )
+      ORDER BY updated_at DESC
+      LIMIT ?
+    `).bind(like, like, limit).all();
+
+    if (!result || !result.results) {
+      return [];
+    }
+
+    return (result.results as any[]).map(row => this.mapRow(row));
   }
 }
 

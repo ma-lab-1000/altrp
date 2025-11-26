@@ -246,5 +246,72 @@ export class MessageThreadRepository {
       throw error;
     }
   }
+
+  async getMatcherGroupsByType(matcherType: 'offer' | 'seek'): Promise<MessageThreadData[]> {
+    try {
+      const result = await this.d1Storage.execute(`
+        SELECT id, uuid, maid, parent_maid, title, status_name, type,
+               \`order\`, xaid, value, updated_at, created_at, deleted_at, gin, data_in
+        FROM message_threads
+        WHERE type = 'matcher'
+          AND parent_maid IS NULL
+          AND deleted_at IS NULL
+          AND json_extract(data_in, '$.type') = ?
+      `, [matcherType]);
+
+      if (!result || !result.length) {
+        return [];
+      }
+
+      return (result as any[]).map(row => this.mapRowToMessageThread(row));
+    } catch (error) {
+      console.error(`Error getting matcher groups for type ${matcherType}:`, error);
+      return [];
+    }
+  }
+
+  async getMessageThreadByMaid(maid: string): Promise<MessageThreadData | null> {
+    try {
+      const result = await this.d1Storage.execute(`
+        SELECT id, uuid, maid, parent_maid, title, status_name, type,
+               \`order\`, xaid, value, updated_at, created_at, deleted_at, gin, data_in
+        FROM message_threads
+        WHERE maid = ? AND deleted_at IS NULL
+        LIMIT 1
+      `, [maid]);
+
+      if (!result || result.length === 0) {
+        return null;
+      }
+
+      return this.mapRowToMessageThread(result[0]);
+    } catch (error) {
+      console.error(`Error getting message thread by maid ${maid}:`, error);
+      return null;
+    }
+  }
+
+  async getThreadByParentAndXaid(parentMaid: string, xaid: string): Promise<MessageThreadData | null> {
+    try {
+      const result = await this.d1Storage.execute(`
+        SELECT id, uuid, maid, parent_maid, title, status_name, type,
+               \`order\`, xaid, value, updated_at, created_at, deleted_at, gin, data_in
+        FROM message_threads
+        WHERE parent_maid = ?
+          AND xaid = ?
+          AND deleted_at IS NULL
+        LIMIT 1
+      `, [parentMaid, xaid]);
+
+      if (!result || result.length === 0) {
+        return null;
+      }
+
+      return this.mapRowToMessageThread(result[0]);
+    } catch (error) {
+      console.error(`Error getting message thread by parent ${parentMaid} and xaid ${xaid}:`, error);
+      return null;
+    }
+  }
 }
 

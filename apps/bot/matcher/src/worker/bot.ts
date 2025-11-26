@@ -522,6 +522,7 @@ export class TelegramBotWorker {
     } else {
       console.log(`📪 Message forwarding disabled for human ${userId} - not forwarding to topic`);
     }
+  }
 
   private async getAdminChatIds(): Promise<number[]> {
     if (this.cachedAdminChatIds) {
@@ -587,6 +588,4 @@ export class TelegramBotWorker {
       return null;
     }
   }
-  }
-
 }
